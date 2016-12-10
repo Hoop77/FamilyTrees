@@ -9,7 +9,9 @@ function destroy() {
 }
 
 function draw() {
-	destroy(); 
+	destroy();
+
+	var result = createVisGraph();
 
 /*
 	// randomly create some nodes and edges
@@ -57,8 +59,8 @@ function draw() {
 	// create a network
 	var container = document.getElementById('mynetwork');
 	var data = {
-		nodes: personNodes,
-		edges: marryRelation
+		nodes: result.nodes,
+		edges: result.edges
 	};
 
 	var options = {
@@ -82,4 +84,40 @@ function draw() {
 	network.on('select', function (params) {
 		document.getElementById('selection').innerHTML = 'Selection: ' + params.nodes;
 	});
+}
+
+function createVisGraph()
+{
+	var nodes = [];
+	var edges = [];
+
+	// parent relation
+	for( var i = 0; i < rootNodes.length; i++ )
+	{
+		var rootNode = rootNodes[ i ];
+		traverse( rootNode, nodes, edges );
+	}
+
+	// marry relation
+	for( var i = 0; i < marryRelation.length; i++ )
+	{
+		var edge = marryRelation[ i ];
+		edges.push( edge );
+	}
+
+	return { nodes: nodes, edges: edges }
+}
+
+function traverse( node, nodes, edges )
+{
+	nodes.push( node );
+	
+	for( var i = 0; i < node.children.length; i++ )
+	{
+		var child = node.children[ i ];
+		
+		edges.push( { from: node.id, to: child.id } );
+
+		traverse( child, nodes, edges );
+	} 
 }
