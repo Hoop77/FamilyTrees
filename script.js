@@ -1,8 +1,10 @@
 var network = null;
 var directionInput = document.getElementById("direction");
 
-function destroy() {
-	if (network !== null) {
+function destroy() 
+{
+	if (network !== null) 
+	{
 		network.destroy();
 		network = null;
 	}
@@ -11,56 +13,13 @@ function destroy() {
 function draw() {
 	destroy();
 
-	var result = createVisGraph();
-
-/*
-	// randomly create some nodes and edges
-	for (var i = 0; i < 15; i++) {
-		nodes.push({ id: i, label: String(i) });
-	}
-
-	nodes[ 0 ].label = "Horst";
-
-	edges = [
-		{ from: 0, to: 1 },
-		{ from: 0, to: 6 },
-		{ from: 0, to: 13 },
-		{ from: 0, to: 11 },
-		{ from: 1, to: 2 },
-		{ from: 2, to: 3 },
-		{ from: 2, to: 4 },
-		{ from: 3, to: 5 },
-		{ from: 1, to: 10 },
-		{ from: 1, to: 7 },
-		{ from: 2, to: 8 },
-		{ from: 2, to: 9 },
-		{ from: 3, to: 14 },
-		{ from: 1, to: 12 },
-		{ from: 1, to: 6 }
-	];
-
-	nodes[0].level = 0;
-	nodes[1].level = 1;
-	nodes[2].level = 3;
-	nodes[3].level = 4;
-	nodes[4].level = 4;
-	nodes[5].level = 5;
-	nodes[6].level = 1;
-	nodes[7].level = 2;
-	nodes[8].level = 4;
-	nodes[9].level = 4;
-	nodes[10].level = 2;
-	nodes[11].level = 1;
-	nodes[12].level = 2;
-	nodes[13].level = 1;
-	nodes[14].level = 5;
-*/
+	var edges = getEdges();
 
 	// create a network
 	var container = document.getElementById('mynetwork');
 	var data = {
-		nodes: result.nodes,
-		edges: result.edges
+		nodes: personNodes,
+		edges: edges
 	};
 
 	var options = {
@@ -86,38 +45,25 @@ function draw() {
 	});
 }
 
-function createVisGraph()
+function getEdges()
 {
-	var nodes = [];
 	var edges = [];
 
-	// parent relation
-	for( var i = 0; i < rootNodes.length; i++ )
+	personNodes.forEach( function( parent )
 	{
-		var rootNode = rootNodes[ i ];
-		traverse( rootNode, nodes, edges );
-	}
+		parent.children.forEach( function( child )
+		{
+			edges.push( {
+				from: parent.id,
+				to: child.id
+			} );
+		} );
+	} );
 
-	// marry relation
-	for( var i = 0; i < marryRelation.length; i++ )
+	marriageRelation.forEach( function( relation ) 
 	{
-		var edge = marryRelation[ i ];
-		edges.push( edge );
-	}
+		edges.push( relation );
+	} );
 
-	return { nodes: nodes, edges: edges }
-}
-
-function traverse( node, nodes, edges )
-{
-	nodes.push( node );
-	
-	for( var i = 0; i < node.children.length; i++ )
-	{
-		var child = node.children[ i ];
-		
-		edges.push( { from: node.id, to: child.id } );
-
-		traverse( child, nodes, edges );
-	} 
+	return edges;
 }

@@ -1,11 +1,19 @@
-var rootNodes = [];
-var marryRelation = [];
+var personNodes = [];
+var marriageRelation = [];
 
 var btnAddPerson = document.getElementById( "btn-add-person" );
 btnAddPerson.onclick = function()
 {
 	var txtAddPerson = document.getElementById( "txt-add-person" );
+	var txtGeneration = document.getElementById( "txt-generation" );
 	var person = txtAddPerson.value;
+	var level = parseInt( txtGeneration.value );
+
+	if( level == NaN )
+	{
+		console.log( "Generation must be a number!" );
+		return;
+	}
 
 	if( checkPersonExists( person ) )
 	{
@@ -13,7 +21,7 @@ btnAddPerson.onclick = function()
 		return;
 	}
 
-	addPerson( person );
+	addPerson( person, level );
 	console.log( "Person: '" + person + "' added." );
 	
 	draw();
@@ -57,12 +65,6 @@ btnMarryPersons.onclick = function()
 		return;
 	}
 
-	if( !isIncoherent( person2 ) )
-	{
-		console.log( "'" + person2 + "' must be incoherent!" );
-		return;
-	}
-
 	marry( person1, person2 );
 
 	draw();
@@ -76,103 +78,111 @@ btnAddParentChildRelation.onclick = function()
 	var parent = txtParent.value;
 	var child = txtChild.value;
 
-	var parentResult = findRootAndPersonNode( parent );
-	var childResult = findRootAndPersonNode( child );
-
-	if( parentResult == null )
+	if( parent === child )
 	{
-		console.log( "'" + parent + "' does not exist!" );
+		console.log( "Parent and child must be different!" );
 		return;
 	}
 
-	if( childResult == null )
+	var parentNode = findPersonNode( parent );
+	var childNode = findPersonNode( child );
+
+	if( parentNode == null )
 	{
-		console.log( "'" + child + "' does not exist!" );
+		console.log( "Parent does not exist!" );
 		return;
 	}
 
-	var parentRoot = parentResult.rootNode;
-	var parentNode = parentResult.personNode;
-	var childRoot = childResult.rootNode;
-	var childNode = childResult.personNode;
-
-	if( parentRoot != childRoot )
+	if( childNode == null )
 	{
-		if( childRoot != childNode )
-		{
-			console.log( "A child of another tree must be be the root!" );
-			return;
-		}
-
-		addParentChildRelation( parentNode, childRoot );
-		setNodeLevel( childRoot, parentNode.level + 1 );
-		removeRoot( childRoot );
+		console.log( "Child does not exist!" );
+		return;
 	}
-	else
+
+	var parentLevel = parentNode.level;
+	var childLevel = childNode.level;
+
+	if( childLevel <= parentLevel )
 	{
-		var parentLevel = parentNode.level;
-		var childLevel = childNode.level;
-		if( childLevel != parentLevel + 1 )
-		{
-			console.log( "Invalid relationship!" );
-			return;
-		}
-
-		addParentChildRelation( parentNode, childNode );
+		console.log( "The generation of child must be greater than generation of parent!" );
+		return;
 	}
+
+	if( isChildOf( childNode, parentNode ) )
+	{
+		console.log( "'" + child + "' is already a child of '" + parent + "'!" );
+		return;
+	}
+
+	if( childNode.parents.length >= 2 )
+	{
+		console.log( "The child already has 2 parents!" );
+		return;
+	}
+
+	addParentChildRelation( parentNode, childNode );
 
 	draw();
 };
 
 function checkPersonExists( person )
 {
-	var result = findRootAndPersonNode( person );
-	
-	if( result != null )
-		return true;
-	
-	return false;
+	if( findPersonNode( person ) == null )
+		return false;
+
+	return true;
 }
 
-function addPerson( person )
+function addPerson( person, level )
 {
-	addRoot( person );
+	personNodes.push( {
+		id: person,
+		label: person,
+		level: level,
+		parents: [],
+		children: []
+	} );
 }
 
-function getPersonNode( person )
+function findPersonNode( person )
 {
-	var result = findRootAndPersonNode( person );
-
-	if( result == null )
-		return null;
-	
-	return result.personNode;
-}
-
-// A person is incoherent if it appears as a root node with no children.
-function isIncoherent( person )
-{
-	for( var i = 0; i < rootNodes.length; i++ )
+	for( var i = 0; i < personNodes.length; i++ )
 	{
-		var rootNode = rootNodes[ i ];
-		if( rootNode.id === person && rootNode.children.length == 0 )
+		var node = personNodes[ i ];
+		if( person === node.id )
+			return node;
+	}
+
+	return null;
+}
+
+function isChildOf( node, parentNode )
+{
+	for( var i = 0; i < parentNode.children.length; i++ )
+	{
+		var childNode = parentNode.children[ i ];
+		if( node == childNode )
 			return true;
 	}
 
 	return false;
 }
 
+function addParentChildRelation( parentNode, childNode )
+{
+	parentNode.children.push( childNode );
+	childNode.parents.push( parentNode );
+}
+
 function isMarried( person )
 {
-	for( var i = 0; i < marryRelation.length; i++ )
+	for( var i = 0; i < marriageRelation.length; i++ )
 	{
-		var from = marryRelation[ i ].from;
-		var to = marryRelation[ i ].to;
-
+		var relation = marriageRelation[ i ];
+		var from = relation.from;
+		var to = relation.to;
 		if( person === from || person === to )
-		{
 			return true;
-		}
 	}
 
 	return false;
@@ -181,81 +191,5 @@ function isMarried( person )
 function marry( person1, person2 )
 {
 	// we just need one direction
-	marryRelation.push( { from: person1, to: person2 } );
-	makeSameLevel( person1, person2 );
-}
-
-function makeSameLevel( person1, person2 )
-{
-	node1 = getPersonNode( person1 );
-	node2 = getPersonNode( person2 );
-	node2.level = node1.level;
-}
-
-function findRootAndPersonNode( person )
-{
-	for( var i = 0; i < rootNodes.length; i++ )
-	{
-		var rootNode = rootNodes[ i ];
-		var personNode = findPersonNode( rootNode, person );
-		if( personNode != null )
-		{
-			return { rootNode: rootNode, personNode: personNode };
-		}
-	}
-
-	return null;
-}
-
-function findPersonNode( node, person )
-{
-	// simple recursive tree traversal
-	if( node.id === person )
-		return node;
-
-	for( var i = 0; i < node.children.length; i++ )
-	{
-		var result = findPersonNode( node.children[ i ], person );
-		if( result != null )
-			return result; 
-	}
-
-	return null;
-}
-
-function addRoot( person )
-{
-	rootNodes.push( { 
-		id: person, 
-		label: person, 
-		level: 0,
-		children: []
-	} );
-}
-
-function addParentChildRelation( parentNode, childNode )
-{
-	parentNode.children.push( childNode );
-}
-
-function setNodeLevel( node, level )
-{
-	node.level = level;
-
-	for( var i = 0; i < node.children.length; i++ )
-	{
-		var child = node.children[ i ];
-		setNodeLevel( child, level + 1 );
-	}
-}
-
-function removeRoot( rootNode )
-{
-	for( var i = 0; i < rootNodes.length; i++ )
-	{
-		if( rootNode == rootNodes[ i ] )
-		{
-			rootNodes.splice( i, 1 );
-		}
-	}
+	marriageRelation.push( { from: person1, to: person2 } );
 }
