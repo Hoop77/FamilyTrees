@@ -4,22 +4,21 @@ var marriageRelation = [];
 var btnAddPerson = document.getElementById( "btn-add-person" );
 btnAddPerson.onclick = function()
 {
-	var txtAddPerson = document.getElementById( "txt-add-person" );
+	var txtName = document.getElementById( "txt-name" );
 	var txtGeneration = document.getElementById( "txt-generation" );
 	var radMale = document.getElementById( "rad-male" );
 
-	if( !checkStringIsNotEmpty( txtAddPerson.value ) ) return;
+	if( !checkStringIsNotEmpty( txtName.value ) ) return;
 	if( !checkStringIsInteger( txtGeneration.value ) ) return;
 
-	var person = txtAddPerson.value;
+	var name = txtName.value;
 	var level = parseInt( txtGeneration.value );
 	var male = radMale.checked;
 
-	var personNode = findPersonNode( person );
+	var node = findPersonNode( name );
+	if( !checkInexistence( node, name ) ) return;
 
-	if( !checkInexistence( personNode ) ) return;
-
-	addPerson( person, level, male );
+	addPerson( name, level, male );
 	
 	draw();
 };
@@ -33,19 +32,19 @@ btnMarryPersons.onclick = function()
 	if( !checkStringIsNotEmpty( txtMarryPerson1.value ) ) return;
 	if( !checkStringIsNotEmpty( txtMarryPerson2.value ) ) return;
 
-	var person1 = txtMarryPerson1.value;
-	var person2 = txtMarryPerson2.value;
+	var name1 = txtMarryPerson1.value;
+	var name2 = txtMarryPerson2.value;
 
-	var node1 = findPersonNode( person1 );
-	var node2 = findPersonNode( person2 );
+	var node1 = findPersonNode( name1 );
+	var node2 = findPersonNode( name2 );
 
-	if( !checkExistence( node1 ) ) return;
-	if( !checkExistence( node2 ) ) return;
+	if( !checkExistence( node1, name1 ) ) return;
+	if( !checkExistence( node2, name2 ) ) return;
 	if( !checkInequality( node1, node2 ) )
-	if( !checkNotMarried( person1 ) ) return;
-	if( !checkNotMarried( person2 ) ) return;
+	if( !checkNotMarried( name1 ) ) return;
+	if( !checkNotMarried( name2 ) ) return;
 
-	marry( person1, person2 );
+	marry( name1, name2 );
 
 	draw();
 };
@@ -59,15 +58,15 @@ btnAddParentChildRelation.onclick = function()
 	if( !checkStringIsNotEmpty( txtParent.value ) ) return;
 	if( !checkStringIsNotEmpty( txtChild.value ) ) return;
 
-	var parent = txtParent.value;
-	var child = txtChild.value;
+	var parentName = txtParent.value;
+	var childName = txtChild.value;
 
-	var parentNode = findPersonNode( parent );
-	var childNode = findPersonNode( child );
+	var parentNode = findPersonNode( parentName );
+	var childNode = findPersonNode( childName );
 
-	if( !checkExistence( parentNode ) ) return;
+	if( !checkExistence( parentNode, parentName ) ) return;
+	if( !checkExistence( childNode, childName ) ) return;
 	if( !checkInequality( parentNode, childNode ) ) return;
-	if( !checkExistence( childNode ) ) return;
 	if( !checkLevel( parentNode, childNode ) ) return;
 	if( !checkChildOfParent( parentNode, childNode ) ) return;
 	if( !checkChildAlreadyHasParent( parentNode, childNode ) ) return;
@@ -83,21 +82,18 @@ btnQueryPerson.onclick = function()
 	clearQueryOutput();
 
 	var txtPerson = document.getElementById( "txt-query-person" );
-
 	if( !checkStringIsNotEmpty( txtPerson.value ) ) return;
 
-	var person = txtPerson.value;
+	var name = txtPerson.value;
+	var node = findPersonNode( name );
+	if( !checkExistence( node, name ) ) return;
 
-	var personNode = findPersonNode( person );
-
-	if( !checkExistence( personNode ) ) return;
-
-	querySiblings( personNode );
-	queryCousins( personNode );
-	queryMaternalUnclesAndAunts( personNode );
-	queryPaternalUnclesAndAunts( personNode );
-	queryGrandparents( personNode );
-	queryGrandchildren( personNode );
+	querySiblings( node );
+	queryCousins( node );
+	queryMaternalUnclesAndAunts( node );
+	queryPaternalUnclesAndAunts( node );
+	queryGrandparents( node );
+	queryGrandchildren( node );
 };
 
 function checkStringIsNotEmpty( str )
@@ -123,22 +119,22 @@ function checkStringIsInteger( str )
 	return true;
 }
 
-function checkExistence( node )
+function checkExistence( node, name )
 {
 	if( node == null )
 	{
-		showMessage( "'" + node.id + "' existiert nicht!" );
+		showMessage( "'" + name + "' existiert nicht!" );
 		return false;
 	}
 
 	return true;
 }
 
-function checkInexistence( node )
+function checkInexistence( node, name )
 {
 	if( node != null )
 	{
-		showMessage( "'" + node.id + "' existiert bereits!" );
+		showMessage( "'" + name + "' existiert bereits!" );
 		return false;
 	}
 
@@ -200,22 +196,22 @@ function checkChildAlreadyHasParent( parentNode, childNode )
 	return true;
 }
 
-function checkNotMarried( person )
+function checkNotMarried( personName )
 {
-	if( isMarried( person ) )
+	if( isMarried( personName ) )
 	{
-		showMessage( "'" + person + "' ist bereits verheiratet!" );
+		showMessage( "'" + personName + "' ist bereits verheiratet!" );
 		return false;
 	}
 
 	return true;
 }
 
-function addPerson( person, level, male )
+function addPerson( name, level, male )
 {
 	var newPersonNode = {
-		id: person,
-		label: person,
+		id: name,
+		label: name,
 		level: level,
 		male: male,
 		mother: null,
@@ -231,12 +227,12 @@ function addPerson( person, level, male )
 	personNodes.push( newPersonNode );
 }
 
-function findPersonNode( person )
+function findPersonNode( name )
 {
 	for( var i = 0; i < personNodes.length; i++ )
 	{
 		var node = personNodes[ i ];
-		if( person === node.id )
+		if( name === node.id )
 			return node;
 	}
 
@@ -284,24 +280,24 @@ function addParentChildRelation( parentNode, childNode )
 		childNode.mother = parentNode;
 }
 
-function isMarried( person )
+function isMarried( personName )
 {
 	for( var i = 0; i < marriageRelation.length; i++ )
 	{
 		var relation = marriageRelation[ i ];
 		var from = relation.from;
 		var to = relation.to;
-		if( person === from || person === to )
+		if( personName === from || personName === to )
 			return true;
 	}
 
 	return false;
 }
 
-function marry( person1, person2 )
+function marry( personName1, personName2 )
 {
 	// we just need one direction
-	marriageRelation.push( { from: person1, to: person2 } );
+	marriageRelation.push( { from: personName1, to: personName2 } );
 }
 
 function querySiblings( personNode )
@@ -369,11 +365,11 @@ function queryMaternalUnclesAndAunts( personNode )
 
 function queryPaternalUnclesAndAunts( personNode )
 {
-	var fatherNode = personNode.mother;
+	var fatherNode = personNode.father;
 	if( fatherNode == null )
 		return;
 
-	var el = document.getElementById( "maternal-uncles-and-aunts" );
+	var el = document.getElementById( "paternal-uncles-and-aunts" );
 
 	var nodes = findSiblingNodes( fatherNode );
 	nodes.forEach( function( node )
@@ -398,7 +394,7 @@ function queryGrandparents( personNode )
 			addListItem( el, maternalGrandfatherNode.id );
 	}
 
-	var fatherNode = personNode.mother;
+	var fatherNode = personNode.father;
 	if( fatherNode != null )
 	{
 		var paternalGrandmotherNode = fatherNode.mother;
@@ -415,7 +411,7 @@ function queryGrandchildren( personNode )
 {
 	var el = document.getElementById( "grandchildren" );
 
-	personNode.forEach( function( child )
+	personNode.children.forEach( function( child )
 	{
 		child.children.forEach( function( grandchild )
 		{
