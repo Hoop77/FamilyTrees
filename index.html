@@ -2,31 +2,60 @@
 <html>
 
 <head>
+	<meta charset="utf-8">
+
 	<title>Stammbaeume</title>
 
 	<script type="text/javascript" src="vis.min.js"></script>
 	<link href="vis.min.css" rel="stylesheet" type="text/css" />
 	<link href="style.css" rel="stylesheet" type="text/css" />
-	<script type="text/javascript" src="script.js"></script>
+	<script type="text/javascript" src="rendering.js"></script>
 </head>
 
 <body onload="draw();">
-	<h2>Stammbaeume</h2>
+	<h2>Stammbäume</h2>
 	<div>
-		<p>Person hinzufuegen</p>
-		<input type="text" id="txt-add-person">
-		<input type="text" id="txt-generation">
-		<input type="button" id="btn-add-person" value="hinzufuegen">
+		<p>Person hinzufügen</p>
+		<fieldset>
+			<input type="text" id="txt-add-person" placeholder="Name">
+			<input type="text" id="txt-generation" placeholder="Generation">
+			<input type="radio" id="rad-male" name="gender" value="male" checked>männlich
+			<input type="radio" id="rad-female" name="gender" value="female">weiblich
+			<input type="button" id="btn-add-person" value="hinzufuegen">
+		</fieldset>
 
 		<p>Personen verheiraten</p>
-		<input type="text" id="txt-marry-person1">
-		<input type="text" id="txt-marry-person2">
-		<input type="button" id="btn-marry-persons" value="verheiraten">
+		<fieldset>
+			<input type="text" id="txt-marry-person1" placeholder="Person">
+			<input type="text" id="txt-marry-person2" placeholder="Person">
+			<input type="button" id="btn-marry-persons" value="verheiraten">
+		</fieldset>
 
-		<p>Eltern-Kind-Beziehung hinzufuegen</p>
-		<input type="text" id="txt-parent">
-		<input type="text" id="txt-child">
-		<input type="button" id="btn-add-parent-child-relation" value="hinzufuegen">
+		<p>Eltern-Kind-Beziehung hinzufügen</p>
+		<fieldset>
+			<input type="text" id="txt-parent" placeholder="Elternteil">
+			<input type="text" id="txt-child" placeholder="Kind">
+			<input type="button" id="btn-add-parent-child-relation" value="hinzufuegen">
+		</fieldset>
+
+		<h3>Abfrage</h3>
+		<fieldset>
+			<input type="text" id="txt-query-person" placeholder="Person">
+			<input type="button" id="btn-query-person" value="los">
+		</fieldset>
+		
+			<h4>Geschwister</h4>
+			<ul id="siblings"></ul>
+			<h4>Erste-Cousins/Cousinen</h4>
+			<ul id="cousins"></ul>
+			<h4>Onkel/Tanten mütterlicherseits</h4>
+			<ul id="maternal-uncles-and-aunts"></ul>
+			<h4>Onkel/Tanten väterlicherseits</h4>
+			<ul id="paternal-uncles-and-aunts"></ul>
+			<h4>Großeltern</h4>
+			<ul id="grandparents"></ul>
+			<h4>Enkelkinder</h4>
+			<ul id="grandchildren"></ul>
 	</div>
 
 	<div id="mynetwork"></div>
