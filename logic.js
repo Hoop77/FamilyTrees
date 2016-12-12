@@ -15,7 +15,7 @@ btnAddPerson.onclick = function()
 	var level = parseInt( txtGeneration.value );
 	var male = radMale.checked;
 
-	var node = findPersonNode( name );
+	var node = findPersonNodeByName( name );
 	if( !checkInexistence( node, name ) ) return;
 
 	addPerson( name, level, male );
@@ -35,8 +35,8 @@ btnMarryPersons.onclick = function()
 	var name1 = txtMarryPerson1.value;
 	var name2 = txtMarryPerson2.value;
 
-	var node1 = findPersonNode( name1 );
-	var node2 = findPersonNode( name2 );
+	var node1 = findPersonNodeByName( name1 );
+	var node2 = findPersonNodeByName( name2 );
 
 	if( !checkExistence( node1, name1 ) ) return;
 	if( !checkExistence( node2, name2 ) ) return;
@@ -61,8 +61,8 @@ btnAddParentChildRelation.onclick = function()
 	var parentName = txtParent.value;
 	var childName = txtChild.value;
 
-	var parentNode = findPersonNode( parentName );
-	var childNode = findPersonNode( childName );
+	var parentNode = findPersonNodeByName( parentName );
+	var childNode = findPersonNodeByName( childName );
 
 	if( !checkExistence( parentNode, parentName ) ) return;
 	if( !checkExistence( childNode, childName ) ) return;
@@ -85,15 +85,15 @@ btnQueryPerson.onclick = function()
 	if( !checkStringIsNotEmpty( txtPerson.value ) ) return;
 
 	var name = txtPerson.value;
-	var node = findPersonNode( name );
+	var node = findPersonNodeByName( name );
 	if( !checkExistence( node, name ) ) return;
 
-	querySiblings( node );
-	queryCousins( node );
-	queryMaternalUnclesAndAunts( node );
-	queryPaternalUnclesAndAunts( node );
-	queryGrandparents( node );
-	queryGrandchildren( node );
+	listPersonNodes( findSiblingNodes( node ), "siblings" );
+	listPersonNodes( findCousinNodes( node ), "cousins" );
+	listPersonNodes( findMaternalUncleAndAuntNodes( node ), "maternal-uncles-and-aunts" );
+	listPersonNodes( findPaternalUncleAndAuntNodes( node ), "paternal-uncles-and-aunts" );
+	listPersonNodes( findGrandparentNodes( node ), "grandparents" );
+	listPersonNodes( findGrandchildNodes( node ), "grandchildren" );
 };
 
 function checkStringIsNotEmpty( str )
@@ -167,7 +167,7 @@ function checkChildOfParent( parentNode, childNode )
 {
 	if( isChildOf( childNode, parentNode ) )
 	{
-		showMessage( "'" + childNode + "' ist bereits ein Kind von '" + parentNode + "'!" );
+		showMessage( "'" + childNode.id + "' ist bereits ein Kind von '" + parentNode.id + "'!" );
 		return false;
 	}
 
@@ -227,7 +227,7 @@ function addPerson( name, level, male )
 	personNodes.push( newPersonNode );
 }
 
-function findPersonNode( name )
+function findPersonNodeByName( name )
 {
 	for( var i = 0; i < personNodes.length; i++ )
 	{
@@ -256,6 +256,96 @@ function findSiblingNodes( personNode )
 	} );
 
 	return siblingNodes;
+}
+
+function findCousinNodes( personNode )
+{
+	var cousinNodes = [];
+
+	var maternalUncleAndAuntNodes = findMaternalUncleAndAuntNodes( personNode );
+	var paternalUncleAndAuntNodes = findPaternalUncleAndAuntNodes( personNode );
+
+	maternalUncleAndAuntNodes.forEach( function( maternalUncleOrAuntNode )
+	{
+		maternalUncleOrAuntNode.children.forEach( function( cousinNode )
+		{
+			cousinNodes.push( cousinNode );
+		} );
+	} );
+
+	paternalUncleAndAuntNodes.forEach( function( paternalUncleOrAuntNode )
+	{
+		paternalUncleOrAuntNode.children.forEach( function( cousinNode )
+		{
+			cousinNodes.push( cousinNode );
+		} );
+	} );
+
+	return cousinNodes;
+}
+
+function findMaternalUncleAndAuntNodes( personNode )
+{
+	var motherNode = personNode.mother;
+	if( motherNode == null )
+		return [];
+
+	return findSiblingNodes( motherNode );
+}
+
+function findPaternalUncleAndAuntNodes( personNode )
+{
+	var fatherNode = personNode.father;
+	if( fatherNode == null )
+		return [];
+
+	return findSiblingNodes( fatherNode );
+}
+
+function findGrandparentNodes( personNode )
+{
+	var grandparentNodes = [];
+
+	var motherNode = personNode.mother;
+	if( motherNode != null )
+	{
+		var maternalGrandmotherNode = motherNode.mother;
+		if( maternalGrandmotherNode != null )
+			grandparentNodes.push( maternalGrandmotherNode );
+
+		var maternalGrandfatherNode = motherNode.father;
+		if( maternalGrandfatherNode != null )
+			grandparentNodes.push( maternalGrandfatherNode );
+	}
+
+	var fatherNode = personNode.father;
+	if( fatherNode != null )
+	{
+		var paternalGrandmotherNode = fatherNode.mother;
+		if( paternalGrandmotherNode != null )
+			grandparentNodes.push( paternalGrandmotherNode );
+
+		var paternalGrandfatherNode = fatherNode.father;
+		if( paternalGrandfatherNode != null )
+			grandparentNodes.push( paternalGrandfatherNode );
+	}
+
+	return grandparentNodes;
+} 
+
+function findGrandchildNodes( personNode )
+{
+	var grandchildNodes = [];
+
+	personNode.children.forEach( function( childNode )
+	{
+		childNode.children.forEach( function( grandchildNode )
+		{
+			grandchildNodes.push( grandchildNode );
+		} );
+	} );
+
+	return grandchildNodes;
 }
 
 function isChildOf( node, parentNode )
@@ -297,126 +387,19 @@ function isMarried( personName )
 function marry( personName1, personName2 )
 {
 	// we just need one direction
-	marriageRelation.push( { from: personName1, to: personName2 } );
+	marriageRelation.push( { 
+		from: personName1, 
+		to: personName2,
+		color: "#A000A0" 
+	} );
 }
 
-function querySiblings( personNode )
+function listPersonNodes( nodes, elementId )
 {
-	var el = document.getElementById( "siblings" );
-
-	var nodes = findSiblingNodes( personNode );
+	var el = document.getElementById( elementId );
 	nodes.forEach( function( node )
 	{
 		addListItem( el, node.id );
-	} );
-}
-
-function queryCousins( personNode )
-{
-	var motherNode = personNode.mother;
-	var fatherNode = personNode.father;
-
-	if( motherNode == null || fatherNode == null )
-		return;
-
-	var maternalSiblingNodes = findSiblingNodes( motherNode );
-	var paternalSiblingNodes = findSiblingNodes( fatherNode );
-
-	var cousinNodes = [];
-
-	maternalSiblingNodes.forEach( function( maternalSiblingNode )
-	{
-		maternalSiblingNode.children.forEach( function( cousinNode ) 
-		{
-			cousinNodes.push( cousinNode );
-		} );
-	} );
-
-	paternalSiblingNodes.forEach( function( paternalSiblingNode )
-	{
-		paternalSiblingNode.children.forEach( function( cousinNode )
-		{
-			cousinNodes.push( cousinNode );
-		} );
-	} );
-
-	var el = document.getElementById( "cousins" );
-
-	cousinNodes.forEach( function( cousinNode ) 
-	{
-		addListItem( el, cousinNode.id );
-	} );
-}
-
-function queryMaternalUnclesAndAunts( personNode )
-{
-	var motherNode = personNode.mother;
-	if( motherNode == null )
-		return;
-
-	var el = document.getElementById( "maternal-uncles-and-aunts" );
-
-	var nodes = findSiblingNodes( motherNode );
-	nodes.forEach( function( node )
-	{
-		addListItem( el, node.id );
-	} );
-}
-
-function queryPaternalUnclesAndAunts( personNode )
-{
-	var fatherNode = personNode.father;
-	if( fatherNode == null )
-		return;
-
-	var el = document.getElementById( "paternal-uncles-and-aunts" );
-
-	var nodes = findSiblingNodes( fatherNode );
-	nodes.forEach( function( node )
-	{
-		addListItem( el, node.id );
-	} );
-}
-
-function queryGrandparents( personNode )
-{
-	var el = document.getElementById( "grandparents" );
-
-	var motherNode = personNode.mother;
-	if( motherNode != null )
-	{
-		var maternalGrandmotherNode = motherNode.mother;
-		if( maternalGrandmotherNode != null )
-			addListItem( el, maternalGrandmotherNode.id );
-
-		var maternalGrandfatherNode = motherNode.father;
-		if( maternalGrandfatherNode != null )
-			addListItem( el, maternalGrandfatherNode.id );
-	}
-
-	var fatherNode = personNode.father;
-	if( fatherNode != null )
-	{
-		var paternalGrandmotherNode = fatherNode.mother;
-		if( paternalGrandmotherNode != null )
-			addListItem( el, paternalGrandmotherNode.id );
-
-		var paternalGrandfatherNode = fatherNode.father;
-		if( paternalGrandfatherNode != null )
-			addListItem( el, paternalGrandfatherNode.id );
-	}
-}
-
-function queryGrandchildren( personNode )
-{
-	var el = document.getElementById( "grandchildren" );
-
-	personNode.children.forEach( function( child )
-	{
-		child.children.forEach( function( grandchild )
-		{
-			addListItem( el, grandchild.id );
-		} );
 	} );
 }
 

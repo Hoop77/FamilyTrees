@@ -13,54 +13,55 @@
 </head>
 
 <body onload="draw();">
-	<h2>Stammbäume</h2>
-	<div>
-		<p>Person hinzufügen</p>
-		<fieldset>
-			<input type="text" id="txt-name" placeholder="Name">
-			<input type="text" id="txt-generation" placeholder="Generation">
-			<input type="radio" id="rad-male" name="gender" value="male" checked>männlich
-			<input type="radio" id="rad-female" name="gender" value="female">weiblich
-			<input type="button" id="btn-add-person" value="hinzufügen">
-		</fieldset>
+	<div id="network"></div>
 
-		<p>Personen verheiraten</p>
-		<fieldset>
-			<input type="text" id="txt-marry-person1" placeholder="Person">
-			<input type="text" id="txt-marry-person2" placeholder="Person">
-			<input type="button" id="btn-marry-persons" value="verheiraten">
-		</fieldset>
+	<div id="text">
+		<h2>Stammbäume</h2>
+		<div>
+			<p>Person hinzufügen</p>
+			<fieldset>
+				<input type="text" id="txt-name" placeholder="Name">
+				<input type="text" id="txt-generation" placeholder="Generation">
+				<input type="radio" id="rad-male" name="gender" value="male" checked>männlich
+				<input type="radio" id="rad-female" name="gender" value="female">weiblich
+				<input type="button" id="btn-add-person" value="hinzufügen">
+			</fieldset>
 
-		<p>Eltern-Kind-Beziehung hinzufügen</p>
-		<fieldset>
-			<input type="text" id="txt-parent" placeholder="Elternteil">
-			<input type="text" id="txt-child" placeholder="Kind">
-			<input type="button" id="btn-add-parent-child-relation" value="hinzufügen">
-		</fieldset>
+			<p>Personen verheiraten</p>
+			<fieldset>
+				<input type="text" id="txt-marry-person1" placeholder="Person">
+				<input type="text" id="txt-marry-person2" placeholder="Person">
+				<input type="button" id="btn-marry-persons" value="verheiraten">
+			</fieldset>
 
-		<h3>Abfrage</h3>
-		<fieldset>
-			<input type="text" id="txt-query-person" placeholder="Person">
-			<input type="button" id="btn-query-person" value="los">
-		</fieldset>
-		
-			<h4>Geschwister</h4>
-			<ul id="siblings"></ul>
-			<h4>Erste-Cousins/Cousinen</h4>
-			<ul id="cousins"></ul>
-			<h4>Onkel/Tanten mütterlicherseits</h4>
-			<ul id="maternal-uncles-and-aunts"></ul>
-			<h4>Onkel/Tanten väterlicherseits</h4>
-			<ul id="paternal-uncles-and-aunts"></ul>
-			<h4>Großeltern</h4>
-			<ul id="grandparents"></ul>
-			<h4>Enkelkinder</h4>
-			<ul id="grandchildren"></ul>
+			<p>Eltern-Kind-Beziehung hinzufügen</p>
+			<fieldset>
+				<input type="text" id="txt-parent" placeholder="Elternteil">
+				<input type="text" id="txt-child" placeholder="Kind">
+				<input type="button" id="btn-add-parent-child-relation" value="hinzufügen">
+			</fieldset>
+
+			<h3>Abfrage</h3>
+			<fieldset>
+				<input type="text" id="txt-query-person" placeholder="Person">
+				<input type="button" id="btn-query-person" value="los">
+			</fieldset>
+			
+				<h4>Geschwister</h4>
+				<ul id="siblings"></ul>
+				<h4>Erste-Cousins/Cousinen</h4>
+				<ul id="cousins"></ul>
+				<h4>Onkel/Tanten mütterlicherseits</h4>
+				<ul id="maternal-uncles-and-aunts"></ul>
+				<h4>Onkel/Tanten väterlicherseits</h4>
+				<ul id="paternal-uncles-and-aunts"></ul>
+				<h4>Großeltern</h4>
+				<ul id="grandparents"></ul>
+				<h4>Enkelkinder</h4>
+				<ul id="grandchildren"></ul>
+		</div>
 	</div>
 
-	<div id="mynetwork"></div>
-
-	<p id="selection"></p>
 	<script type="text/javascript" src="logic.js"></script>
 </body>
 

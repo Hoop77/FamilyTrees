@@ -1,5 +1,5 @@
 var network = null;
-var directionInput = document.getElementById("direction");
+var directionInput = document.getElementById( "direction" );
 
 function destroy() 
 {
@@ -16,7 +16,7 @@ function draw() {
 	var edges = getEdges();
 
 	// create a network
-	var container = document.getElementById('mynetwork');
+	var container = document.getElementById('network');
 	var data = {
 		nodes: personNodes,
 		edges: edges
@@ -38,11 +38,6 @@ function draw() {
 		physics: false
 	};
 	network = new vis.Network(container, data, options);
-
-	// add event listeners
-	network.on('select', function (params) {
-		document.getElementById('selection').innerHTML = 'Selection: ' + params.nodes;
-	});
 }
 
 function getEdges()
