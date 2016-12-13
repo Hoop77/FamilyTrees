@@ -1,5 +1,4 @@
 var personNodes = [];
-var marriageRelation = [];
 
 var btnAddPerson = document.getElementById( "btn-add-person" );
 btnAddPerson.onclick = function()
@@ -12,13 +11,13 @@ btnAddPerson.onclick = function()
 	if( !checkStringIsInteger( txtGeneration.value ) ) return;
 
 	var name = txtName.value;
-	var level = parseInt( txtGeneration.value );
+	var generation = parseInt( txtGeneration.value );
 	var male = radMale.checked;
 
 	var node = findPersonNodeByName( name );
 	if( !checkInexistence( node, name ) ) return;
 
-	addPerson( name, level, male );
+	addPersonNode( name, generation, male );
 	
 	draw();
 };
@@ -41,10 +40,10 @@ btnMarryPersons.onclick = function()
 	if( !checkExistence( node1, name1 ) ) return;
 	if( !checkExistence( node2, name2 ) ) return;
 	if( !checkInequality( node1, node2 ) )
-	if( !checkNotMarried( name1 ) ) return;
-	if( !checkNotMarried( name2 ) ) return;
+	if( !checkNotMarried( node1 ) ) return;
+	if( !checkNotMarried( node2 ) ) return;
 
-	marry( name1, name2 );
+	marry( node1, node2 );
 
 	draw();
 };
@@ -154,7 +153,7 @@ function checkInequality( node1, node2 )
 
 function checkLevel( parentNode, childNode )
 {
-	if( childNode.level <= parentNode.level )
+	if( childNode.generation <= parentNode.generation )
 	{
 		showMessage( "Die Generation des Kindes muss größer sein als die Generation des Elternteils!" );
 		return false;
@@ -167,7 +166,7 @@ function checkChildOfParent( parentNode, childNode )
 {
 	if( isChildOf( childNode, parentNode ) )
 	{
-		showMessage( "'" + childNode.id + "' ist bereits ein Kind von '" + parentNode.id + "'!" );
+		showMessage( "'" + childNode.name + "' ist bereits ein Kind von '" + parentNode.name + "'!" );
 		return false;
 	}
 
@@ -196,35 +195,30 @@ function checkChildAlreadyHasParent( parentNode, childNode )
 	return true;
 }
 
-function checkNotMarried( personName )
+function checkNotMarried( node )
 {
-	if( isMarried( personName ) )
+	if( isMarried( node ) )
 	{
-		showMessage( "'" + personName + "' ist bereits verheiratet!" );
+		showMessage( "'" + node.name + "' ist bereits verheiratet!" );
 		return false;
 	}
 
 	return true;
 }
 
-function addPerson( name, level, male )
+function addPersonNode( name, generation, male )
 {
-	var newPersonNode = {
-		id: name,
-		label: name,
-		level: level,
+	var node = {
+		name: name,
+		generation: generation,
 		male: male,
 		mother: null,
 		father: null,
+		marriagePartner: null,
 		children: []
 	}
 
-	if( male )
-		newPersonNode.color = "#97C2FC";
-	else
-		newPersonNode.color = "#FB7E81";
-
-	personNodes.push( newPersonNode );
+	personNodes.push( node );
 }
 
 function findPersonNodeByName( name )
@@ -232,17 +226,17 @@ function findPersonNodeByName( name )
 	for( var i = 0; i < personNodes.length; i++ )
 	{
 		var node = personNodes[ i ];
-		if( name === node.id )
+		if( name === node.name )
 			return node;
 	}
 
 	return null;
 }
 
-function findSiblingNodes( personNode )
+function findSiblingNodes( node )
 {
-	var motherNode = personNode.mother;
-	var fatherNode = personNode.father;
+	var motherNode = node.mother;
+	var fatherNode = node.father;
 
 	if( motherNode == null || fatherNode == null )
 		return [];
@@ -250,20 +244,15 @@ function findSiblingNodes( personNode )
 	// A node n' is a sibling of a node n, if it they have the same father AND mother.
 	// Therefor, the set of siblings of n is the intersection of the sets of child nodes from its father and mother WITHOUT n itself.
 	var siblingNodes = intersection( fatherNode.children, motherNode.children );
-	siblingNodes = siblingNodes.filter( function( siblingNode )
-	{
-		return ( siblingNode.id !== personNode.id );
-	} );
-
-	return siblingNodes;
+	return filterElement( siblingNodes, node );
 }
 
-function findCousinNodes( personNode )
+function findCousinNodes( node )
 {
 	var cousinNodes = [];
 
-	var maternalUncleAndAuntNodes = findMaternalUncleAndAuntNodes( personNode );
-	var paternalUncleAndAuntNodes = findPaternalUncleAndAuntNodes( personNode );
+	var maternalUncleAndAuntNodes = findMaternalUncleAndAuntNodes( node );
+	var paternalUncleAndAuntNodes = findPaternalUncleAndAuntNodes( node );
 
 	maternalUncleAndAuntNodes.forEach( function( maternalUncleOrAuntNode )
 	{
@@ -281,32 +270,34 @@ function findCousinNodes( personNode )
 		} );
 	} );
 
-	return cousinNodes;
+	// In case of incest: node can be a cousin of itself and its siblings will occur twice!
+	// So we have to do some filtering!
+	return filterDuplicates( filterElement( cousinNodes, node ) );
 }
 
-function findMaternalUncleAndAuntNodes( personNode )
+function findMaternalUncleAndAuntNodes( node )
 {
-	var motherNode = personNode.mother;
+	var motherNode = node.mother;
 	if( motherNode == null )
 		return [];
 
 	return findSiblingNodes( motherNode );
 }
 
-function findPaternalUncleAndAuntNodes( personNode )
+function findPaternalUncleAndAuntNodes( node )
 {
-	var fatherNode = personNode.father;
+	var fatherNode = node.father;
 	if( fatherNode == null )
 		return [];
 
 	return findSiblingNodes( fatherNode );
 }
 
-function findGrandparentNodes( personNode )
+function findGrandparentNodes( node )
 {
 	var grandparentNodes = [];
 
-	var motherNode = personNode.mother;
+	var motherNode = node.mother;
 	if( motherNode != null )
 	{
 		var maternalGrandmotherNode = motherNode.mother;
@@ -318,7 +309,7 @@ function findGrandparentNodes( personNode )
 			grandparentNodes.push( maternalGrandfatherNode );
 	}
 
-	var fatherNode = personNode.father;
+	var fatherNode = node.father;
 	if( fatherNode != null )
 	{
 		var paternalGrandmotherNode = fatherNode.mother;
@@ -330,14 +321,15 @@ function findGrandparentNodes( personNode )
 			grandparentNodes.push( paternalGrandfatherNode );
 	}
 
-	return grandparentNodes;
+	// In case of incest we'll have duplicate grandparents.
+	return filterDuplicates( grandparentNodes );
 } 
 
-function findGrandchildNodes( personNode )
+function findGrandchildNodes( node )
 {
 	var grandchildNodes = [];
 
-	personNode.children.forEach( function( childNode )
+	node.children.forEach( function( childNode )
 	{
 		childNode.children.forEach( function( grandchildNode )
 		{
@@ -345,7 +337,8 @@ function findGrandchildNodes( personNode )
 		} );
 	} );
 
-	return grandchildNodes;
+	// In case of incest we'll have duplicate grandchildren.
+	return filterDuplicates( grandchildNodes );
 }
 
 function isChildOf( node, parentNode )
@@ -370,28 +363,18 @@ function addParentChildRelation( parentNode, childNode )
 		childNode.mother = parentNode;
 }
 
-function isMarried( personName )
+function isMarried( node )
 {
-	for( var i = 0; i < marriageRelation.length; i++ )
-	{
-		var relation = marriageRelation[ i ];
-		var from = relation.from;
-		var to = relation.to;
-		if( personName === from || personName === to )
-			return true;
-	}
-
+	if( node.marriagePartner != null )
+		return true;
+	
 	return false;
 }
 
-function marry( personName1, personName2 )
+function marry( node1, node2 )
 {
-	// we just need one direction
-	marriageRelation.push( { 
-		from: personName1, 
-		to: personName2,
-		color: "#A000A0" 
-	} );
+	node1.marriagePartner = node2;
+	node2.marriagePartner = node1;
 }
 
 function listPersonNodes( nodes, elementId )
@@ -399,18 +382,18 @@ function listPersonNodes( nodes, elementId )
 	var el = document.getElementById( elementId );
 	nodes.forEach( function( node )
 	{
-		addListItem( el, node.id );
+		addListItem( el, node.name );
 	} );
 }
 
 function clearQueryOutput()
 {
-	makeElementEmpty( document.getElementById( "siblings" ) );
-	makeElementEmpty( document.getElementById( "cousins" ) );
-	makeElementEmpty( document.getElementById( "maternal-uncles-and-aunts" ) );
-	makeElementEmpty( document.getElementById( "paternal-uncles-and-aunts" ) );
-	makeElementEmpty( document.getElementById( "grandparents" ) );
-	makeElementEmpty( document.getElementById( "grandchildren" ) );	
+	makeHtmlElementEmpty( document.getElementById( "siblings" ) );
+	makeHtmlElementEmpty( document.getElementById( "cousins" ) );
+	makeHtmlElementEmpty( document.getElementById( "maternal-uncles-and-aunts" ) );
+	makeHtmlElementEmpty( document.getElementById( "paternal-uncles-and-aunts" ) );
+	makeHtmlElementEmpty( document.getElementById( "grandparents" ) );
+	makeHtmlElementEmpty( document.getElementById( "grandchildren" ) );	
 }
 
 function showMessage( msg )
@@ -451,6 +434,22 @@ function intersection( array1, array2 )
 	return result;
 }
 
+function filterElement( array, element )
+{
+	return array.filter( function( el )
+	{
+		return ( el != element );
+	} );
+}
+
+function filterDuplicates( array )
+{
+	return array.filter( function( el, index, self )
+	{
+		return index == self.indexOf( el );
+	} );
+}
+
 function addListItem( el, content )
 {
 	var li = document.createElement( "li" );
@@ -458,7 +457,7 @@ function addListItem( el, content )
 	el.appendChild( li );
 }
 
-function makeElementEmpty( el )
+function makeHtmlElementEmpty( el )
 {
 	while( el.firstChild )
 		el.removeChild( el.firstChild );

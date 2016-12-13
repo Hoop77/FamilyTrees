@@ -13,13 +13,13 @@ function destroy()
 function draw() {
 	destroy();
 
-	var edges = getEdges();
+	var graph = getGraph();
 
 	// create a network
 	var container = document.getElementById('network');
 	var data = {
-		nodes: personNodes,
-		edges: edges
+		nodes: graph.nodes,
+		edges: graph.edges
 	};
 
 	var options = {
@@ -35,30 +35,54 @@ function draw() {
 				direction: 'UD'
 			}
 		},
-		physics: false
+		physics: true
 	};
 	network = new vis.Network(container, data, options);
 }
 
-function getEdges()
+function getGraph()
 {
+	var nodes = [];
 	var edges = [];
 
-	personNodes.forEach( function( parent )
+	personNodes.forEach( function( personNode )
 	{
-		parent.children.forEach( function( child )
+		nodes.push( getVisNodeFromPersonNode( personNode ) );
+		
+		personNode.children.forEach( function( childNode )
 		{
 			edges.push( {
-				from: parent.id,
-				to: child.id
+				from: personNode.name,
+				to: childNode.name
 			} );
 		} );
+
+		var marriagePartner = personNode.marriagePartner;
+		if( marriagePartner != null )
+		{
+			edges.push( {
+				from: personNode.name,
+				to: marriagePartner.name,
+				color: "#A000A0"
+			} );
+		}
 	} );
 
-	marriageRelation.forEach( function( relation ) 
-	{
-		edges.push( relation );
-	} );
+	return { nodes, edges };
+}
 
-	return edges;
+function getVisNodeFromPersonNode( personNode )
+{
+	var visNode = {
+		id: personNode.name,
+		label: personNode.name,
+		level: personNode.generation,
+	};
+
+	if( personNode.male )
+		visNode.color = "#97C2FC";
+	else
+		visNode.color = "#FB7E81";
+
+	return visNode;
 }
