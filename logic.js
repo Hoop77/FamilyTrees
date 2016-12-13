@@ -39,7 +39,7 @@ btnMarryPersons.onclick = function()
 
 	if( !checkExistence( node1, name1 ) ) return;
 	if( !checkExistence( node2, name2 ) ) return;
-	if( !checkInequality( node1, node2 ) )
+	if( !checkInequality( node1, node2 ) ) return;
 	if( !checkNotMarried( node1 ) ) return;
 	if( !checkNotMarried( node2 ) ) return;
 
