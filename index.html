@@ -9,7 +9,12 @@
 	<script type="text/javascript" src="vis.js"></script>
 	<link href="vis.min.css" rel="stylesheet" type="text/css" />
 	<link href="style.css" rel="stylesheet" type="text/css" />
+	<script type="text/javascript" src="familyTree.js"></script>
+	<script type="text/javascript" src="personNode.js"></script>
+	<script type="text/javascript" src="utils.js"></script>
 	<script type="text/javascript" src="rendering.js"></script>
+	<script type="text/javascript" src="main.js"></script>
+	<script type="text/javascript" src="test.js"></script>
 </head>
 
 <body onload="draw();">
@@ -21,7 +26,6 @@
 			<p>Person hinzufügen</p>
 			<fieldset>
 				<input type="text" id="txt-name" placeholder="Name">
-				<input type="text" id="txt-generation" placeholder="Generation">
 				<input type="radio" id="rad-male" name="gender" value="male" checked>männlich
 				<input type="radio" id="rad-female" name="gender" value="female">weiblich
 				<input type="button" id="btn-add-person" value="hinzufügen">
@@ -62,7 +66,7 @@
 		</div>
 	</div>
 
-	<script type="text/javascript" src="logic.js"></script>
+	<script type="text/javascript" src="ui.js"></script>
 </body>
 
 </html>

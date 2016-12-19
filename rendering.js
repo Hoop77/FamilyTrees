@@ -10,10 +10,11 @@ function destroy()
 	}
 }
 
-function draw() {
+function draw() 
+{
 	destroy();
 
-	var graph = getGraph();
+	var graph = familyTree.exportAsVisGraph();
 
 	// create a network
 	var container = document.getElementById('network');
@@ -28,7 +29,8 @@ function draw() {
 				type: 'cubicBezier',
 				forceDirection: 'vertical',
 				roundness: 0.4
-			}
+			},
+			arrows: { to : true }
 		},
 		layout: {
 			hierarchical: {
@@ -38,51 +40,4 @@ function draw() {
 		physics: true
 	};
 	network = new vis.Network(container, data, options);
-}
-
-function getGraph()
-{
-	var nodes = [];
-	var edges = [];
-
-	personNodes.forEach( function( personNode )
-	{
-		nodes.push( getVisNodeFromPersonNode( personNode ) );
-		
-		personNode.children.forEach( function( childNode )
-		{
-			edges.push( {
-				from: personNode.name,
-				to: childNode.name
-			} );
-		} );
-
-		var marriagePartner = personNode.marriagePartner;
-		if( marriagePartner != null )
-		{
-			edges.push( {
-				from: personNode.name,
-				to: marriagePartner.name,
-				color: "#A000A0"
-			} );
-		}
-	} );
-
-	return { nodes, edges };
-}
-
-function getVisNodeFromPersonNode( personNode )
-{
-	var visNode = {
-		id: personNode.name,
-		label: personNode.name,
-		level: personNode.generation,
-	};
-
-	if( personNode.male )
-		visNode.color = "#97C2FC";
-	else
-		visNode.color = "#FB7E81";
-
-	return visNode;
 }
