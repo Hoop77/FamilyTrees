@@ -34,10 +34,8 @@ function PersonNode( name, male )
 		for( var i = 0; i < self.children.length; i++ )
 		{
 			var child = self.children[ i ];
-			if( node === child )
+			if( node === child || child.isAncestorOf( node ) )
 				return true;
-			else
-				return child.isAncestorOf( node );
 		}
 
 		return false;
