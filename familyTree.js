@@ -21,7 +21,7 @@ function FamilyTree()
 		self.personNodes.push( node );
 	};
 
-	self.marryPersons = function( name1, name2 )
+	self.marry = function( name1, name2 )
 	{
 		var node1 = findPersonNodeByName( name1 );
 		var node2 = findPersonNodeByName( name2 );
@@ -45,7 +45,6 @@ function FamilyTree()
 		checkNodeExists( childNode, childName );
 		checkNodesNotEqual( parentNode, childNode );
 		checkChildHasNotAlreadyParent( parentNode, childNode );
-		checkNotAlreadyParentOfChild( parentNode, childNode );
 		checkCycle( parentNode, childNode );
 
 		parentNode.children.push( childNode );
@@ -141,12 +140,6 @@ function FamilyTree()
 	{
 		if( node1 === node2 )
 			throw "Die Personen müssen unterschiedlich sein!";
-	}
-
-	function checkNotAlreadyParentOfChild( parentNode, childNode )
-	{
-		if( parentNode.isParentOf( childNode ) )
-			throw "'" + childNode.name + "' ist bereits ein Kind von '" + parentNode.name + "'!";
 	}
 
 	function checkChildHasNotAlreadyParent( parentNode, childNode )

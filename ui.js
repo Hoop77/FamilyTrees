@@ -24,7 +24,7 @@ btnMarryPersons.onclick = function()
 
 	try
 	{
-		familyTree.marryPersons( person1, person2 );
+		familyTree.marry( person1, person2 );
 	}
 	catch( err )
 	{
